@@ -1,4 +1,3 @@
-using System.Data.Common;
 using API.Entities;
 using Microsoft.EntityFrameworkCore;
 
