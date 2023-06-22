@@ -4,6 +4,7 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ToastrModule } from 'ngx-toastr';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { NgxGalleryModule } from '@kolkov/ngx-gallery';
+import { NgxSpinnerModule } from 'ngx-spinner';
 
 
 
@@ -13,6 +14,9 @@ import { NgxGalleryModule } from '@kolkov/ngx-gallery';
   imports: [
     CommonModule,
     NgxGalleryModule,
+    NgxSpinnerModule.forRoot({
+      type:'ball-newton-cradle'
+    }),
     BsDropdownModule.forRoot(),
     TabsModule.forRoot(),     
     ToastrModule.forRoot({
@@ -24,7 +28,8 @@ import { NgxGalleryModule } from '@kolkov/ngx-gallery';
     BsDropdownModule,
     ToastrModule,
     TabsModule,
-    NgxGalleryModule   
+    NgxGalleryModule,
+    NgxSpinnerModule
   ]
 })
 export class SharedModule { }
