@@ -5,6 +5,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -16,8 +17,10 @@ namespace API.Controllers
         private readonly ITokenService _tokenService;
         private readonly DataContext _context;
         public ITokenService TokenService { get; }
-        public AccountController(DataContext context, ITokenService tokenService)
+        private readonly IMapper _mapper;
+        public AccountController(DataContext context, ITokenService tokenService, IMapper mapper)
         {
+            _mapper = mapper;
             _tokenService = tokenService;
             _context = context;
         }
@@ -28,17 +31,18 @@ namespace API.Controllers
             //Check if user exists
             if(await UserExists(registerDto.Username)) return BadRequest("Username already exists");
 
+
+            var user = _mapper.Map<AppUser>(registerDto);
+
             //HMACSHA512 Will be the passowrd salt, "using" will dispose of the object once we're done with it, garbage collection can normally handle this but if we know we don't need it then we might as well dispose of it ourselves
             //HMACSHA515 dervies from a class that implements IDisposable, that lets us use the "using" keyword to dispose of it after we're done with it
             using var hmac = new HMACSHA512();            
 
-            //Save username in lower to make it like for like when comparing
-            var user = new AppUser
-            {
-                UserName = registerDto.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key
-            };
+            //Save username in lower to make it like for like when comparing            
+                user.UserName = registerDto.Username.ToLower();
+                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+                user.PasswordSalt = hmac.Key;
+            
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -46,7 +50,8 @@ namespace API.Controllers
             return new UserDto
             {
                 Username = user.UserName,
-                Token = _tokenService.CreateToken(user)
+                Token = _tokenService.CreateToken(user),
+                KnownAs = user.KnownAs
             };
 
         }
@@ -73,7 +78,8 @@ namespace API.Controllers
             {
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
-                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                KnownAs = user.KnownAs
             };
         }
 
